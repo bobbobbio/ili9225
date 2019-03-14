@@ -1,4 +1,4 @@
-use std::io::{Read, Result};
+use std::io::Result;
 
 #[allow(
     dead_code,
@@ -10,19 +10,15 @@ mod ffi {
     include!(concat!(env!("OUT_DIR"), "/ili9225.rs"));
 }
 
-const XMAX: u16 = 176;
-const YMAX: u16 = 220;
+pub use ffi::BLACK;
 
-const XMAX2: u16 = 175;
-const YMAX2: u16 = 219;
-
-struct Font {
+pub struct Font {
     fonts: [ffi::FontxFile; 2],
     paths: [std::ffi::CString; 2],
 }
 
 impl Font {
-    fn new<T1: Into<String>, T2: Into<String>>(path1: T1, path2: T2) -> Result<Self> {
+    pub fn new<T1: Into<String>, T2: Into<String>>(path1: T1, path2: T2) -> Result<Self> {
         unsafe {
             let mut f = Font {
                 fonts: [std::mem::uninitialized(); 2],
@@ -66,10 +62,10 @@ impl Drop for Font {
     }
 }
 
-struct Lcd();
+pub struct Lcd();
 
 impl Lcd {
-    fn new(model: u16, width: u16, height: u16) -> Self {
+    pub fn new(model: u16, width: u16, height: u16) -> Self {
         unsafe {
             ffi::lcdInit(model, width, height);
             ffi::lcdReset();
@@ -81,7 +77,7 @@ impl Lcd {
         Lcd()
     }
 
-    fn draw_utf8_string<T: Into<String>>(
+    pub fn draw_utf8_string<T: Into<String>>(
         &self,
         font: &Font,
         x: u16,
@@ -95,63 +91,4 @@ impl Lcd {
                 as u16
         }
     }
-}
-
-fn main() -> Result<()> {
-    let lcd = Lcd::new(0x9225, XMAX, YMAX);
-    let fxg16 = Font::new(
-        "ili9225spi_rpi/fontx/ILGH16XB.FNT",
-        "ili9225spi_rpi//fontx/ILGZ16XB.FNT",
-    )?;
-    let fxm16 = Font::new(
-        "ili9225spi_rpi/fontx/ILMH16XB.FNT",
-        "ili9225spi_rpi//fontx/ILMZ16XF.FNT",
-    )?;
-    let fxg24 = Font::new(
-        "ili9225spi_rpi/fontx/ILGH24XB.FNT",
-        "ili9225spi_rpi//fontx/ILGZ24XB.FNT",
-    )?;
-    let fxm24 = Font::new(
-        "ili9225spi_rpi/fontx/ILMH24XF.FNT",
-        "ili9225spi_rpi//fontx/ILMZ24XF.FNT",
-    )?;
-
-    let mut xpos;
-    let mut ypos;
-    let color;
-
-    xpos = XMAX2 - (16 * 1);
-    ypos = YMAX2;
-    color = ffi::BLACK as u16;
-    lcd.draw_utf8_string(&fxg16, xpos, ypos, "16Dot Gothic", color);
-
-    xpos = XMAX2 - (16 * 2);
-    lcd.draw_utf8_string(&fxg16, xpos, ypos, "ABCDEFGabcdefg", color);
-
-    xpos = XMAX2 - (16 * 3);
-    ypos = YMAX2;
-    lcd.draw_utf8_string(&fxm16, xpos, ypos, "16Dot Mincho", color);
-
-    xpos = XMAX2 - (16 * 4);
-    lcd.draw_utf8_string(&fxm16, xpos, ypos, "ABCDEFGabcdefg", color);
-
-    xpos = XMAX2 - (16 * 6) - (24 * 0);
-    ypos = YMAX2;
-    lcd.draw_utf8_string(&fxg24, xpos, ypos, "24Dot Gothic", color);
-
-    xpos = XMAX2 - (16 * 6) - (24 * 1);
-    lcd.draw_utf8_string(&fxg24, xpos, ypos, "ABCDEFGabcdefg", color);
-
-    xpos = XMAX2 - (16 * 6) - (24 * 2);
-    ypos = YMAX2;
-    lcd.draw_utf8_string(&fxm24, xpos, ypos, "24Dot Mincho", color);
-
-    xpos = XMAX2 - (16 * 6) - (24 * 3);
-    lcd.draw_utf8_string(&fxm24, xpos, ypos, "ABCDEFGabcdefg", color);
-
-    println!("Hit any key");
-    let mut b = [0u8; 1];
-    std::io::stdin().read(&mut b)?;
-
-    Ok(())
 }

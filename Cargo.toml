@@ -1,13 +1,10 @@
 [package]
 name = "ili9225"
 version = "0.1.0"
-authors = ["pi"]
+authors = ["Remi Bernotavicius <remi@abort.cc>"]
 edition = "2018"
 build = "build.rs"
 
 [build-dependencies]
 bindgen = "*"
 cc = "*"
-http_io = "*"
-serde = "*"
-serde_json = "*"
